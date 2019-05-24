@@ -27,9 +27,11 @@ def score(ref_trn=None, hyp_trn=None):
     for hyp_k, hyp_v in hyp_dict.items():
         if hyp_k not in ref_dict:
             raise RuntimeError("key {} not found in ref".format(hyp_k))
+        if hyp_k=='3170-137482-0006':
+            print("hi")
         ref_v = ref_dict[hyp_k]
-        ref_s = sen_to_idx_str(ref_v, word2idx)
-        hyp_s = sen_to_idx_str(hyp_v, word2idx)
+        ref_s = sen_to_idxs(ref_v, word2idx)
+        hyp_s = sen_to_idxs(hyp_v, word2idx)
         (N, E, D, I, S) = wer.string_edit_distance(ref_s, hyp_s)
         if E > 0:
             ErrSen = ErrSen + 1
@@ -56,13 +58,12 @@ def score(ref_trn=None, hyp_trn=None):
     print("-----------------------------------")
 
 
-def sen_to_idx_str(sen, word2idx):
+def sen_to_idxs(sen, word2idx):
     words = sen.split()
     idxs = []
     for word in words:
-        idxs.append(chr(word2idx[word]))
-    return "".join(idxs)
-
+        idxs.append(word2idx[word])
+    return idxs
 
 def word_to_idx(dict, word2idx):
     for _, v in dict.items():
