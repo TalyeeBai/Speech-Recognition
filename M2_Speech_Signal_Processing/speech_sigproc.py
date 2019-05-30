@@ -75,7 +75,10 @@ class FrontEnd:
     def pre_emphasize(self, wav):
         # apply pre-emphasis filtering on waveform
         preemph_wav = []
-        return preemph_wav
+        preemph_wav.append(wav[0])
+        for i in range(1, len(wav)):
+            preemph_wav.append(wav[i] - self.preemphasis * wav[i - 1])
+        return np.asarray(preemph_wav)
 
     def wav_to_frames(self, wav):
         # only process whole frames
@@ -92,20 +95,23 @@ class FrontEnd:
     def frames_to_magspec(self, frames):
         # compute the fft
         # compute magnitude
-        magspec = []
+        complex_spec = np.fft.rfft(frames, self.fft_size, 0)
+        magspec = np.absolute(complex_spec)
         return magspec
 
     # for each frame(column of 2D array 'magspec'), compute the log mel spectrum, by applying the mel filterbank to the magnitude spectrum
     def magspec_to_fbank(self, magspec):
         # apply the mel filterbank
-        fbank = []
-        return fbank
+        #powspec = 1.0 / self.fft_size * np.square(magspec)
+        fbank = np.dot(self.mel_filterbank, magspec)
+        return np.log(fbank)
 
     # compute the mean vector of fbank coefficients in the utterance and subtract it from all frames of fbank coefficients
     def mean_norm_fbank(self, fbank):
         # compute mean fbank vector of all frames
         # subtract it from each frame
-        return fbank
+        mean=np.mean(fbank, axis=1).reshape(-1,1)
+        return fbank-mean
 
     # accumulates sufficient statistics for corpus mean and variance
     def accumulate_stats(self, fbank):
